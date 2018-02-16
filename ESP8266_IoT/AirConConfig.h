@@ -14,31 +14,17 @@
  limitations under the License.
 */
 
-#include "RemoteController.h"
-#include <Arduino.h>
+#ifndef __AIRCON_CONFIG_H__
+#define __AIRCON_CONFIG_H__
 
-GpioRemoteController::GpioRemoteController(KEYGPIO keys[])
+#include "base.h"
+
+class AirConConfig
 {
-  mpKeys = keys;
-}
+public:
+  static void savePowerControlConfig(String human_timeout, String poweron_period);
+  static void loadPowerControlConfig(int& humanTimeout, int& powerOnPeriod);
+  constexpr static char* CONFIG_FILE = "airconfig.txt";
+};
 
-GpioRemoteController::~GpioRemoteController()
-{
-
-}
-
-void GpioRemoteController::sendKey(int keyCode)
-{
-	if(mpKeys){
-		KEYGPIO* pKeys = mpKeys;
-		while( pKeys->keyCode != NULL ){
-			if( pKeys->keyCode = keyCode ){
-				digitalWrite(pKeys->gpio, pKeys->bActive);
-				delay(pKeys->sleepMSec);
-				digitalWrite(pKeys->gpio, !pKeys->bActive);
-				break;
-			}
-			pKeys++;
-		}
-	}
-}
+#endif /* __AIRCON_CONFIG_H__ */

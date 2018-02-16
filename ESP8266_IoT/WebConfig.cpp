@@ -20,6 +20,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <FS.h>
+#include "AirConConfig.h"
 
 // --- HTTP server related
 static ESP8266WebServer* g_pHttpd = NULL; // http server for WiFi AP Mode
@@ -43,10 +44,12 @@ void httpd_handleRootGet() {
   DEBUG_PRINTLN("Receive: GET /");
   if (g_pHttpd != NULL) {
     String html = HTML_HEAD;
-    html += "<h1>WiFi Settings</h1>";
+    html += "<h1>WiFi/Power Control Settings</h1>";
     html += "<form method='post'>";
     html += "  <input type='text' name='ssid' placeholder='ssid'><br>";
     html += "  <input type='text' name='pass' placeholder='pass'><br>";
+    html += "  <input type='text' name='human_timeout' placeholder='human_timeout'><br>";
+    html += "  <input type='text' name='poweron_period' placeholder='poweron_period'><br>";
     html += "  <input type='submit'><br>";
     html += "</form>";
     html += HTML_TAIL;
@@ -59,6 +62,8 @@ void httpd_handleRootPost() {
   if( g_pHttpd != NULL ){
     String ssid = g_pHttpd->arg("ssid");
     String pass = g_pHttpd->arg("pass");
+    String human_timeout = g_pHttpd->arg("human_timeout");
+    String poweron_period = g_pHttpd->arg("poweron_period");
   
     // --- SSID & Password are specified.
     if( (ssid=="format") && (pass=="format") ){
@@ -69,15 +74,22 @@ void httpd_handleRootPost() {
       g_pHttpd->send(200, "text/html", html);
     } else {
       saveWiFiConfig(ssid, pass);
+      AirConConfig::savePowerControlConfig(human_timeout,poweron_period);
     }
     
     String html = HTML_HEAD;
     html += "<h1>WiFi Settings</h1>";
     html += ((ssid!="") ? ssid : "ssid isn't changed") + "<br>";
     html += ((pass!="") ? pass : "password isn't changed") + "<br>";
+    html += ((human_timeout!="") ? human_timeout : "human_timeout isn't changed") + "<br>";
+    html += ((poweron_period!="") ? poweron_period : "poweron_period isn't changed") + "<br>";
     html += HTML_TAIL;
 
     g_pHttpd->send(200, "text/html", html);
+
+    delay(1000*3);
+
+    ESP.restart();
   }
 }
 

@@ -30,6 +30,8 @@ extern "C" {
 #include "LooperThreadTicker.h"
 #include "GpioDetector.h"
 #include "RemoteController.h"
+#include "AirConPowerControl.h"
+#include "AirConConfig.h"
 
 #include <FS.h>
 #include <Time.h>
@@ -98,13 +100,23 @@ void setup() {
   }
 }
 
-#define HUMAN_UNDETECT_TIMEOUT 1000*60*15 // 15min
+#define HUMAN_UNDETECT_TIMEOUT 1000*60*30 // 15min
+#define AIRCON_POWER_PERIOD 1500
 
 void handleAirConditionerControl(void)
 {
   static GpioDetector powerStatus(POWER_DETECT_PIN, false, 3000);
   static GpioDetector humanDetector(HUMAN_DETCTOR_PIN, true, 1000);
   static GpioRemoteController remoteController(KEYGPIOs);
+
+  static bool bInitialized = false;
+  static int humanTimeout = HUMAN_UNDETECT_TIMEOUT;
+  int powerOnPeriod = AIRCON_POWER_PERIOD;
+  if( !bInitialized ){
+    bInitialized = true;
+    AirConConfig::loadPowerControlConfig(humanTimeout, powerOnPeriod);
+  }
+  static AirConPowerControl airconPowerControl(&remoteController, &powerStatus, powerOnPeriod);
 
   powerStatus.update();
   humanDetector.update();
@@ -123,10 +135,10 @@ void handleAirConditionerControl(void)
 
     if( lastHumanStatus!=curStatus ){
       if( !curStatus ){
-        if( (n - lastHumanDetected) > HUMAN_UNDETECT_TIMEOUT ){
+        if( (n - lastHumanDetected) > humanTimeout ){
           DEBUG_PRINTLN("Human is absent but aircon is on then send power key");
           lastHumanStatus = curStatus; // false (human undetected)
-          remoteController.sendKey(IRemoteController::KEY_POWER);
+          airconPowerControl.setPower(false);
         }
       }
     }
