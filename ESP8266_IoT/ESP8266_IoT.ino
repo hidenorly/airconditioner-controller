@@ -28,10 +28,7 @@ extern "C" {
 #include "WebConfig.h"
 #include "NtpUtil.h"
 #include "LooperThreadTicker.h"
-#include "GpioDetector.h"
-#include "RemoteController.h"
-#include "AirConPowerControl.h"
-#include "AirConConfig.h"
+#include "AirConPowerControlPoller.h"
 
 #include <FS.h>
 #include <Time.h>
@@ -43,7 +40,7 @@ extern "C" {
 
 // --- mode changer
 bool initializeProperMode(){
-  if( (digitalRead(MODE_PIN) == 0) || (!SPIFFS.exists(WIFI_CONFIG)) ){
+  if( (digitalRead(MODE_PIN) == 0) || (!SPIFFS.exists(WIFI_CONFIG))){
     // setup because WiFi AP mode is specified or WIFI_CONFIG is not found.
     setupWiFiAP();
     setup_httpd();
@@ -63,23 +60,6 @@ void onWiFiClientConnected(){
   start_NTP(); // socket related is need to be executed in main loop.
 }
 
-class Poller:public LooperThreadTicker
-{
-  public:
-    Poller(int dutyMSec=0):LooperThreadTicker(NULL, NULL, dutyMSec)
-    {
-    }
-
-    virtual void doCallback(void)
-    {
-      char s[30];
-      time_t n = now();
-      sprintf(s, "%04d-%02d-%02d %02d:%02d:%02d", year(n), month(n), day(n), hour(n), minute(n), second(n));
-    
-      DEBUG_PRINT("UTC : ");
-      DEBUG_PRINTLN(s);
-  }
-};
 
 // --- General setup() function
 void setup() {
@@ -95,61 +75,14 @@ void setup() {
   // Check mode
   delay(1000);
   if(initializeProperMode()){
-    static Poller* sPoll=new Poller(1000);
+    AirConPowerControlPoller* sPoll=new AirConPowerControlPoller(1000);
     g_LooperThreadManager.add(sPoll);
   }
 }
-
-#define HUMAN_UNDETECT_TIMEOUT 1000*60*30 // 15min
-#define AIRCON_POWER_PERIOD 1500
-
-void handleAirConditionerControl(void)
-{
-  static GpioDetector powerStatus(POWER_DETECT_PIN, false, 3000);
-  static GpioDetector humanDetector(HUMAN_DETCTOR_PIN, true, 1000);
-  static GpioRemoteController remoteController(KEYGPIOs);
-
-  static bool bInitialized = false;
-  static int humanTimeout = HUMAN_UNDETECT_TIMEOUT;
-  int powerOnPeriod = AIRCON_POWER_PERIOD;
-  if( !bInitialized ){
-    bInitialized = true;
-    AirConConfig::loadPowerControlConfig(humanTimeout, powerOnPeriod);
-  }
-  static AirConPowerControl airconPowerControl(&remoteController, &powerStatus, powerOnPeriod);
-
-  powerStatus.update();
-  humanDetector.update();
-
-  if( powerStatus.getStatus() ){
-    // power is On!
-    static bool lastHumanStatus = true;
-    static unsigned long lastHumanDetected = 0;
-    unsigned long n = millis();
-    bool curStatus = humanDetector.getStatus();
-
-    if(curStatus){
-      lastHumanDetected = n;
-      lastHumanStatus = curStatus; // true (human detected)
-    }
-
-    if( lastHumanStatus!=curStatus ){
-      if( !curStatus ){
-        if( (n - lastHumanDetected) > humanTimeout ){
-          DEBUG_PRINTLN("Human is absent but aircon is on then send power key");
-          lastHumanStatus = curStatus; // false (human undetected)
-          airconPowerControl.setPower(false);
-        }
-      }
-    }
-  }
-}
-
 
 void loop() {
   // put your main code here, to run repeatedly:
   handleWiFiClientStatus();
   handleWebServer();
-  handleAirConditionerControl();
   g_LooperThreadManager.handleLooperThread();
 }

@@ -17,7 +17,6 @@
 #include "base.h"
 #include "AirConPowerControl.h"
 
-
 AirConPowerControl::AirConPowerControl(IRemoteController* pController, GpioDetector* pPowerStatus, int checkStatusPeriod, int checkStatusPollingPeriod):mpController(pController),mpPowerStatus(pPowerStatus),mCheckStatusPeriod(checkStatusPeriod),mCheckStatusPollingPeriod(checkStatusPollingPeriod)
 {
 

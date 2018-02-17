@@ -41,5 +41,10 @@ extern const int HUMAN_DETCTOR_PIN;
 #include "RemoteController.h"
 extern KEYGPIO KEYGPIOs[];
 
+// --- config : Initial value for Air conditioner controller
+#define HUMAN_UNDETECT_TIMEOUT 1000*60*30 // 15min
+#define AIRCON_POWER_PERIOD 1500
+
+
 #endif // __CONFIG_H__
 
