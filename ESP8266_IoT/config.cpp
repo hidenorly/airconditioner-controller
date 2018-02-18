@@ -31,6 +31,9 @@ const char* NTP_SERVER = "ntp.nict.jp";
 int HTTP_SERVER_PORT = 80;
 const char* HTML_HEAD = "<html><head><title>hidenorly's ESP8266</title></head><body>";
 
+// --- config: OTA
+const int OTA_PIN = MODE_PIN; // GPIO0
+
 // --- config: Air conditioner controller
 const int POWER_DETECT_PIN = 4;
 const int POWER_CONTROL_PIN = 5;
@@ -51,7 +54,7 @@ void initializeGPIO(void) {
   pinMode(15, INPUT);
 
   // Project related config
-  pinMode(MODE_PIN, INPUT); // GPIO0 is for switching mode Low: WiFi AP Mode (Config) / High: WiFi Client (Normal)
+  pinMode(MODE_PIN, INPUT_PULLUP); // GPIO0 is for switching mode Low: WiFi AP Mode (Config) / High: WiFi Client (Normal)
 
   // If pin is NC, we should set {output / High} or {input / pull up enabled} on the pin.
   pinMode(4, INPUT_PULLUP);   // Optical Detector Input

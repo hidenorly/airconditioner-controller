@@ -34,6 +34,10 @@ extern const char* HTML_HEAD;
 // --- GPIO initial setup
 void initializeGPIO(void);
 
+// --- config: OTA
+extern const int OTA_PIN;
+#define OTA_PIN_PERIOD	5000
+
 // --- config: Air conditioner controller
 extern const int POWER_DETECT_PIN;
 extern const int POWER_CONTROL_PIN;

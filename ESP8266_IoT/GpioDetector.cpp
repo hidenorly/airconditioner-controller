@@ -23,9 +23,9 @@ extern "C" {
 
 GpioDetector::GpioDetector(int gpio, bool bActive, unsigned long hysterisis):mGPIO(gpio), mbActive(bActive), mHysterisis(hysterisis)
 {
-  mLastMeasured = 0;
-  mPreviousStatus = false;
-  mLastActive = 0;
+	mLastMeasured = 0;
+	mPreviousStatus = false;
+	mLastActive = 0;
 }
 
 GpioDetector::~GpioDetector()
@@ -49,7 +49,7 @@ void GpioDetector::update(void)
 	bool curStatus = false;
 
 	if(mGPIO < GPIO_ADC1){
-			curStatus = digitalRead(mGPIO);
+		curStatus = digitalRead(mGPIO);
 	} else {
       curStatus = _getADCAsDigital();
 	}
@@ -66,8 +66,8 @@ bool GpioDetector::_getADCAsDigital(void)
 {
 	int adcVal = system_adc_read();
 
-  DEBUG_PRINT("adc:");
-  DEBUG_PRINTLN(String(adcVal));
+	DEBUG_PRINT("adc:");
+	DEBUG_PRINTLN(String(adcVal));
 
 	return (adcVal > GPIO_DETECTION_THRESHOLD);
 }

@@ -29,6 +29,7 @@ extern "C" {
 #include "NtpUtil.h"
 #include "LooperThreadTicker.h"
 #include "AirConPowerControlPoller.h"
+#include "OtaManager.h"
 
 #include <FS.h>
 #include <Time.h>
@@ -85,4 +86,6 @@ void loop() {
   handleWiFiClientStatus();
   handleWebServer();
   g_LooperThreadManager.handleLooperThread();
+  static OtaManager ota(OTA_PIN, OTA_PIN_PERIOD);
+  ota.handle();
 }

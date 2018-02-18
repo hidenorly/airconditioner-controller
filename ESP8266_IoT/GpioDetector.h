@@ -17,9 +17,15 @@
 #ifndef __GPIO_DETCTOR_H__
 #define __GPIO_DETCTOR_H__
 
-#define GPIO_DETECTION_MIN_UPDATE 100 		// minimum period of update
-#define GPIO_DETECTION_THRESHOLD 100 		// if ADC value is greater than this, GPIO is detected.
+#ifndef GPIO_DETECTION_MIN_UPDATE
+#define GPIO_DETECTION_MIN_UPDATE 100 	// minimum period of update
+#endif
+#ifndef GPIO_DETECTION_THRESHOLD
+#define GPIO_DETECTION_THRESHOLD 512 	// if ADC value is greater than this, GPIO is detected.
+#endif
+#ifndef GPIO_DETECTION_HISTERESES
 #define GPIO_DETECTION_HISTERESES 10000	// if ADC value is kept less than this for this period, GPIO is not detected
+#endif
 
 class GpioDetector
 {
