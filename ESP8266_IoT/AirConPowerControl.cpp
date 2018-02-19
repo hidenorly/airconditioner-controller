@@ -35,6 +35,7 @@ void AirConPowerControl::setPower(bool bPower)
 			for(int i=0; i<mCheckStatusPeriod; i=i+mCheckStatusPollingPeriod){
 				delay(mCheckStatusPollingPeriod);
 				if( bPower == getPowerStatus() ) return;
+				yield();
 			}
 		}
 	}
@@ -45,7 +46,7 @@ bool AirConPowerControl::getPowerStatus(void)
 	bool result = false;
 
 	if( mpPowerStatus ){
-    mpPowerStatus->update();
+		mpPowerStatus->update();
 		result = mpPowerStatus->getStatus();
 	}
 

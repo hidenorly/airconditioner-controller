@@ -40,8 +40,8 @@ extern "C" {
 #define DEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)
 
 // --- mode changer
-bool initializeProperMode(){
-  if( (digitalRead(MODE_PIN) == 0) || (!SPIFFS.exists(WIFI_CONFIG))){
+bool initializeProperMode(bool bSPIFFS){
+  if( !bSPIFFS || (digitalRead(MODE_PIN) == 0) || (!SPIFFS.exists(WIFI_CONFIG))){
     // setup because WiFi AP mode is specified or WIFI_CONFIG is not found.
     setupWiFiAP();
     setup_httpd();
@@ -71,11 +71,14 @@ void setup() {
   Serial.begin(115200);
 
   // Initialize SPI File System
-  SPIFFS.begin();
+  bool bSPIFFS = SPIFFS.begin();
+  if(!bSPIFFS){
+    SPIFFS.format();
+  }
 
   // Check mode
   delay(1000);
-  if(initializeProperMode()){
+  if(initializeProperMode(bSPIFFS)){
     AirConPowerControlPoller* sPoll=new AirConPowerControlPoller(1000);
     g_LooperThreadManager.add(sPoll);
   }
