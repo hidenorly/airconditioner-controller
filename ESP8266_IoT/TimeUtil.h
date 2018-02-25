@@ -1,5 +1,5 @@
 /* 
- Copyright (C) 2016,2018 hidenorly
+ Copyright (C) 2018 hidenorly
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -14,23 +14,16 @@
  limitations under the License.
 */
 
-#include "base.h"
+#ifndef __TIMEUTIL_H__
+#define __TIMEUTIL_H__
 
-class CTrackerParam{
+#include "base.h"
+#include <Time.h>
+
+class TimeUtil
+{
+public:
+	static String getDateTimeFromTime(time_t n);
 };
 
-void setOutputAndValue(int port, int initialVal) {
-  digitalWrite(port, initialVal); // Output data should be set first (before direction setting)
-  pinMode(port, OUTPUT);
-}
-
-
-AutoDisableInterrupt::AutoDisableInterrupt()
-{
-  noInterrupts();
-}
-
-AutoDisableInterrupt::~AutoDisableInterrupt()
-{
-  interrupts();
-}
+#endif /* __TIMEUTIL_H__ */

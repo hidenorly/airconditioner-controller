@@ -17,6 +17,8 @@
 #include "base.h"
 #include "AirConPowerControl.h"
 
+#define TIMEOUT_SET_POWER 5000
+
 AirConPowerControl::AirConPowerControl(IRemoteController* pController, GpioDetector* pPowerStatus, int checkStatusPeriod, int checkStatusPollingPeriod):mpController(pController),mpPowerStatus(pPowerStatus),mCheckStatusPeriod(checkStatusPeriod),mCheckStatusPollingPeriod(checkStatusPollingPeriod)
 {
 
@@ -30,7 +32,8 @@ AirConPowerControl::~AirConPowerControl()
 void AirConPowerControl::setPower(bool bPower)
 {
 	if( mpPowerStatus && mpController ){
-		while( bPower != getPowerStatus() ){
+		unsigned long n = millis();
+		while( bPower != getPowerStatus() && (millis()<(n+TIMEOUT_SET_POWER)) ){
 			mpController->sendKey(IRemoteController::KEY_POWER);
 			for(int i=0; i<mCheckStatusPeriod; i=i+mCheckStatusPollingPeriod){
 				delay(mCheckStatusPollingPeriod);

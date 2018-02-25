@@ -15,61 +15,52 @@
 */
 
 #include "base.h"
-#include "AirConPowerControl.h"
 #include "AirConPowerControlPoller.h"
-#include "GpioDetector.h"
-#include "RemoteController.h"
-#include "AirConConfig.h"
-#include "config.h"
 
-AirConPowerControlPoller::AirConPowerControlPoller(int dutyMSec):LooperThreadTicker(NULL, NULL, dutyMSec)
+AirConPowerControlPoller::AirConPowerControlPoller(AirConPowerControl* pPowerControl, GpioDetector* pPowerStatus, GpioDetector* pHumanDetector, int humanTimeout, int dutyMSec):LooperThreadTicker(NULL, NULL, dutyMSec),mpPowerControl(pPowerControl),mpPowerStatus(pPowerStatus),mpHumanDetector(pHumanDetector),mHumanTimeout(humanTimeout)
 {
 
 }
 
 AirConPowerControlPoller::~AirConPowerControlPoller()
 {
-
+  mpPowerControl = NULL;
+  mpPowerStatus = NULL;
+  mpHumanDetector = NULL;
 }
 
 void AirConPowerControlPoller::doCallback(void)
 {
-  static GpioDetector powerStatus(POWER_DETECT_PIN, false, 3000);
-  static GpioDetector humanDetector(HUMAN_DETCTOR_PIN, true, 1000);
-  static GpioRemoteController remoteController(KEYGPIOs);
+  if(mpPowerStatus && mpHumanDetector && mpPowerControl){
+    mpPowerStatus->update();
+    mpHumanDetector->update();
 
-  static bool bInitialized = false;
-  static int humanTimeout = HUMAN_UNDETECT_TIMEOUT;
-  int powerOnPeriod = AIRCON_POWER_PERIOD;
-  if( !bInitialized ){
-    bInitialized = true;
-    AirConConfig::loadPowerControlConfig(humanTimeout, powerOnPeriod);
-  }
-  static AirConPowerControl airconPowerControl(&remoteController, &powerStatus, powerOnPeriod);
+    static bool lastPowerStatus = mpPowerStatus->getStatus();
+    bool curPowerStatus = mpPowerStatus->getStatus();
 
-  powerStatus.update();
-  humanDetector.update();
+    if( curPowerStatus ){
+      // power is On!
+      static bool lastHumanStatus = true;
+      static unsigned long lastHumanDetected = 0;
+      unsigned long n = millis();
+      bool curStatus = mpHumanDetector->getStatus();
 
-  if( powerStatus.getStatus() ){
-    // power is On!
-    static bool lastHumanStatus = true;
-    static unsigned long lastHumanDetected = 0;
-    unsigned long n = millis();
-    bool curStatus = humanDetector.getStatus();
+      if(curStatus || (lastPowerStatus!=curPowerStatus)){
+        lastHumanDetected = n;
+        lastHumanStatus = curStatus; // true (human detected)
+      }
 
-    if(curStatus){
-      lastHumanDetected = n;
-      lastHumanStatus = curStatus; // true (human detected)
-    }
-
-    if( lastHumanStatus!=curStatus ){
-      if( !curStatus ){
-        if( (n - lastHumanDetected) > humanTimeout ){
-          DEBUG_PRINTLN("Human is absent but aircon is on then send power key");
-          lastHumanStatus = curStatus; // false (human undetected)
-          airconPowerControl.setPower(false);
+      if( lastHumanStatus!=curStatus ){
+        if( !curStatus ){
+          if( (n - lastHumanDetected) > mHumanTimeout ){
+            DEBUG_PRINTLN("Human is absent but aircon is on then send power key");
+            lastHumanStatus = curStatus; // false (human undetected)
+            mpPowerControl->setPower(false);
+          }
         }
       }
+
+      lastPowerStatus = curPowerStatus;
     }
   }
 }

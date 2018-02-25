@@ -1,5 +1,5 @@
 /* 
- Copyright (C) 2016 hidenorly
+ Copyright (C) 2016, 2018 hidenorly
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -37,7 +37,5 @@ class AutoDisableInterrupt {
     AutoDisableInterrupt();
     ~AutoDisableInterrupt();
 };
-
-int StringFind(String& in, String key, int nStartPos=0);
 
 #endif // __BASE_H__

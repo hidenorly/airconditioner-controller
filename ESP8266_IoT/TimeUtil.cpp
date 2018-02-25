@@ -1,5 +1,5 @@
 /* 
- Copyright (C) 2016,2018 hidenorly
+ Copyright (C) 2018 hidenorly
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -15,22 +15,40 @@
 */
 
 #include "base.h"
+#include <Time.h>
+#include "TimeUtil.h"
 
-class CTrackerParam{
+const char* szWeek[] PROGMEM = {
+	"",
+	"Sun",
+	"Mon",
+	"Tue",
+	"Wed",
+	"Thu",
+	"Fri",
+	"Sat"
 };
 
-void setOutputAndValue(int port, int initialVal) {
-  digitalWrite(port, initialVal); // Output data should be set first (before direction setting)
-  pinMode(port, OUTPUT);
-}
+const char* szMonth[] PROGMEM = {
+	"",
+	"Jan",
+	"Feb",
+	"Mar",
+	"Apr",
+	"Jun",
+	"Jul",
+	"Aug",
+	"Sep",
+	"Oct",
+	"Nov",
+	"Dec",
+};
 
-
-AutoDisableInterrupt::AutoDisableInterrupt()
+String TimeUtil::getDateTimeFromTime(time_t n)
 {
-  noInterrupts();
+	char tm[30];
+	sprintf(tm, "%s, %02d %s %04d %02d:%02d:%02d", szWeek[weekday(n)], day(n), szMonth[month(n)] , year(n), hour(n), minute(n), second(n));
+
+	return String(tm);
 }
 
-AutoDisableInterrupt::~AutoDisableInterrupt()
-{
-  interrupts();
-}

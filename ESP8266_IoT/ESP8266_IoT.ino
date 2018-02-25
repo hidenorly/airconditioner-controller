@@ -28,7 +28,6 @@ extern "C" {
 #include "WebConfig.h"
 #include "NtpUtil.h"
 #include "LooperThreadTicker.h"
-#include "AirConPowerControlPoller.h"
 #include "OtaManager.h"
 
 #include <FS.h>
@@ -38,6 +37,23 @@ extern "C" {
 
 #define DEBUG_PRINT(...) Serial.print(__VA_ARGS__)
 #define DEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)
+
+// --- UPnP Device
+#include "Ssdp.h"
+#include "UPnPDeviceWiFiSwitchAirCon.h"
+
+static Ssdp* g_pSsdp=NULL;
+static UPnPDevice* g_pSwitch1=NULL;
+
+// --- Aircon
+#include "GpioDetector.h"
+#include "RemoteController.h"
+#include "AirConPowerControl.h"
+#include "AirConPowerControlPoller.h"
+#include "AirConConfig.h"
+
+static AirConPowerControl* g_pAirPowerControl=NULL;
+
 
 // --- mode changer
 bool initializeProperMode(bool bSPIFFS){
@@ -59,6 +75,36 @@ void onWiFiClientConnected(){
   DEBUG_PRINT("IP address: ");
   DEBUG_PRINTLN(WiFi.localIP());
   start_NTP(); // socket related is need to be executed in main loop.
+
+  if(g_pSsdp){
+    if(!g_pSwitch1){
+      g_pSwitch1 = new UPnPDeviceWiFiSwitchAirCon(g_pAirPowerControl, "aircon", 31415, "Belkin:device:**", "38323636-4558-4dda-9188-cda0e6aabbcc", "/setup.xml");
+    }
+    if(g_pSwitch1){
+      g_pSwitch1->enable(true);
+      g_pSsdp->addUPnPDevice(g_pSwitch1);
+    }
+    g_pSsdp->enable(true);
+  }
+}
+
+void setupAircon(void)
+{
+  static GpioDetector powerStatus(POWER_DETECT_PIN, false, 3000);
+  static GpioDetector humanDetector(HUMAN_DETCTOR_PIN, true, 1000);
+
+  int humanTimeout = HUMAN_UNDETECT_TIMEOUT;
+  int powerOnPeriod = AIRCON_POWER_PERIOD;
+  AirConConfig::loadPowerControlConfig(humanTimeout, powerOnPeriod);
+
+  if(!g_pAirPowerControl){
+    static GpioRemoteController remoteController(KEYGPIOs);
+    g_pAirPowerControl = new AirConPowerControl(&remoteController, &powerStatus, powerOnPeriod);
+  }
+  AirConPowerControlPoller* pAirPowerControllerPoller = new AirConPowerControlPoller(g_pAirPowerControl, &powerStatus, &humanDetector, humanTimeout, 1000);
+  if(pAirPowerControllerPoller){
+    g_LooperThreadManager.add(pAirPowerControllerPoller);
+  }
 }
 
 
@@ -79,16 +125,29 @@ void setup() {
   // Check mode
   delay(1000);
   if(initializeProperMode(bSPIFFS)){
-    AirConPowerControlPoller* sPoll=new AirConPowerControlPoller(1000);
-    g_LooperThreadManager.add(sPoll);
+    g_pSsdp = new Ssdp();
+    setupAircon();
   }
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  // WiFi
   handleWiFiClientStatus();
   handleWebServer();
-  g_LooperThreadManager.handleLooperThread();
+
+  // OTA
   static OtaManager ota(OTA_PIN, OTA_PIN_PERIOD);
   ota.handle();
+
+  // UPnP
+  if(g_pSsdp && g_pSsdp->getEnabled()){
+    g_pSsdp->handle();
+  }
+  if(g_pSwitch1 && g_pSwitch1->getEnabled()){
+    g_pSwitch1->handle();
+  }
+
+  // Poller
+  g_LooperThreadManager.handleLooperThread();
 }

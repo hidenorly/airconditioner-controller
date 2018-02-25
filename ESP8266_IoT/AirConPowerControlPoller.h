@@ -19,14 +19,23 @@
 
 #include "base.h"
 #include "LooperThreadTicker.h"
+#include "AirConPowerControl.h"
+#include "GpioDetector.h"
+#include "config.h"
 
 class AirConPowerControlPoller:public LooperThreadTicker
 {
   public:
-    AirConPowerControlPoller(int dutyMSec=0);
+    AirConPowerControlPoller(AirConPowerControl* pPowerControl=NULL, GpioDetector* pPowerStatus=NULL, GpioDetector* pHumanDetector=NULL, int humanTimeout=HUMAN_UNDETECT_TIMEOUT, int dutyMSec=0);
     virtual ~AirConPowerControlPoller();
 
     virtual void doCallback(void);
+
+protected:
+	AirConPowerControl* mpPowerControl;
+	GpioDetector* mpPowerStatus;
+	GpioDetector* mpHumanDetector;
+	int mHumanTimeout;
 };
 
 #endif /* __AIRCON_POWER_CONTROL_POLLER_H__ */

@@ -5,6 +5,8 @@ This solves the problem by detecting air conditioner's power status, human detec
 
 This is WiFi enabled Remote Controller for Air Conditioner based on ESP8266(W-ROOM02), Universal A/C Remote (K-1028E) and optical sensor.
 
+And now control over Alexa is integrated.
+
 System is consisted of
 
 * ESP8266 for main control

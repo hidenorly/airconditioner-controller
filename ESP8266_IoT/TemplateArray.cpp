@@ -1,5 +1,5 @@
 /* 
- Copyright (C) 2016 hidenorly
+ Copyright (C) 2016,2018 hidenorly
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -81,4 +81,7 @@ int TemplateArray<T>::size(void)
 // TODO: I'm not sure why but I cannot instanciate template class TemplateArray<LooperThreadTicker>; in LooperThreadTicker.cpp. But here is Ok...
 #include "LooperThreadTicker.h"
 template class TemplateArray<LooperThreadTicker>;
+
+#include "Ssdp.h"
+template class TemplateArray<UPnPDevice>;
 
