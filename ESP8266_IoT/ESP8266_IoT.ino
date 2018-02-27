@@ -88,10 +88,11 @@ void onWiFiClientConnected(){
   }
 }
 
+GpioDetector g_powerStatus(POWER_DETECT_PIN, false, 3000);
+GpioDetector g_humanDetector(HUMAN_DETCTOR_PIN, true, 1000);
+
 void setupAircon(void)
 {
-  static GpioDetector powerStatus(POWER_DETECT_PIN, false, 3000);
-  static GpioDetector humanDetector(HUMAN_DETCTOR_PIN, true, 1000);
 
   int humanTimeout = HUMAN_UNDETECT_TIMEOUT;
   int powerOnPeriod = AIRCON_POWER_PERIOD;
@@ -99,9 +100,9 @@ void setupAircon(void)
 
   if(!g_pAirPowerControl){
     static GpioRemoteController remoteController(KEYGPIOs);
-    g_pAirPowerControl = new AirConPowerControl(&remoteController, &powerStatus, powerOnPeriod);
+    g_pAirPowerControl = new AirConPowerControl(&remoteController, &g_powerStatus, powerOnPeriod);
   }
-  AirConPowerControlPoller* pAirPowerControllerPoller = new AirConPowerControlPoller(g_pAirPowerControl, &powerStatus, &humanDetector, humanTimeout, 1000);
+  AirConPowerControlPoller* pAirPowerControllerPoller = new AirConPowerControlPoller(g_pAirPowerControl, &g_powerStatus, &g_humanDetector, humanTimeout, 1000);
   if(pAirPowerControllerPoller){
     g_LooperThreadManager.add(pAirPowerControllerPoller);
   }

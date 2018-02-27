@@ -21,6 +21,37 @@ TODO:
 
 Please note that Air Conditioner power is needed to turn on with K-1028E.
 
+# How to burn & config WiFi?
+
+1. Build with generic ESP8266 / 4M(1M SPIFFS) / DIO / Flash:40MHz / CPU:80MHz
+2. Burn though UART (115200bps) (1. Push Mode button & reset but please keep mode button for a while.)
+3. Reset
+4. You can see "SSID" & "initial password"
+5. Connect to 4 from PC
+6. Open http://192.168.4.1/ on your PC
+7. Configure WiFi SSID & the password.
+(You can also set timeout:3600000 and power button:5000 etc)
+8. The device will be restarting automatically and connect to your WiFi AP.
+
+If you configure wrong SSID & the password, you can enter config mode by pushing mode button immediate after reset. You need to push mode button with 1sec after deasseting the reset.
+
+# How to use OTA?
+
+1. Push MODE Button for more than 5 sec.
+2. Launch Arduino IDE
+3. You can find network port under tool/serialport
+
+Please note that you may need to disable firewall on your Mac and restart Arduino IDE after pushing the button
+
+# How to get current status?
+
+1. Open http://yourDeviceIpAddress/status from your PC
+
+You can see
+* current time (synced with NTP server)
+* aircon power status
+* human detection status
+
 # Dependencies
 
 ## General steps to include zip library

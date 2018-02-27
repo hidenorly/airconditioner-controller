@@ -50,8 +50,7 @@ bool Ssdp::isCheckSsdpPacket(char* buf, int nSize)
 	result = (StringUtil::inInclude(buf, nSize, "M-SEARCH")) ||
 		(StringUtil::inInclude(buf, nSize, "MAN: \"ssdp:discover\"")) ||
 		(StringUtil::inInclude(buf, nSize, "ssdp:all")) ||
-		(StringUtil::inInclude(buf, nSize, "upnp:rootdevice")) ||
-		(StringUtil::inInclude(buf, nSize, "urn:Belkin:device:**"));
+		(StringUtil::inInclude(buf, nSize, "upnp:rootdevice"));
 
 	return result;
 }

@@ -32,8 +32,8 @@ AirConPowerControl::~AirConPowerControl()
 void AirConPowerControl::setPower(bool bPower)
 {
 	if( mpPowerStatus && mpController ){
-		unsigned long n = millis();
-		while( bPower != getPowerStatus() && (millis()<(n+TIMEOUT_SET_POWER)) ){
+		unsigned long timeout = millis()+TIMEOUT_SET_POWER;
+		while( bPower != getPowerStatus() && (millis()<timeout) ){
 			mpController->sendKey(IRemoteController::KEY_POWER);
 			for(int i=0; i<mCheckStatusPeriod; i=i+mCheckStatusPollingPeriod){
 				delay(mCheckStatusPollingPeriod);

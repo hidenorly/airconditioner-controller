@@ -22,6 +22,12 @@
 #include <FS.h>
 #include "AirConConfig.h"
 
+#include "GpioDetector.h"
+extern GpioDetector g_powerStatus;
+extern GpioDetector g_humanDetector;
+#include <Time.h>
+#include "TimeUtil.h"
+
 // --- HTTP server related
 static ESP8266WebServer* g_pHttpd = NULL; // http server for WiFi AP Mode
 
@@ -29,12 +35,14 @@ char* HTML_TAIL = "</body></html>";
 
 void httpd_handleRootGet(void);
 void httpd_handleRootPost(void);
+void httpd_handleRootGetStatus(void);
 
 void setup_httpd() {
   if( g_pHttpd == NULL ){
     g_pHttpd = new ESP8266WebServer(HTTP_SERVER_PORT);
   }
   g_pHttpd->on("/", HTTP_GET, httpd_handleRootGet);
+  g_pHttpd->on("/status", HTTP_GET, httpd_handleRootGetStatus);
   g_pHttpd->on("/", HTTP_POST, httpd_handleRootPost);
   g_pHttpd->begin();
   DEBUG_PRINTLN("HTTP server started.");
@@ -52,6 +60,21 @@ void httpd_handleRootGet() {
     html += "  <input type='text' name='poweron_period' placeholder='poweron_period'><br>";
     html += "  <input type='submit'><br>";
     html += "</form>";
+    html += HTML_TAIL;
+    g_pHttpd->send(200, "text/html", html);
+  }
+}
+
+void httpd_handleRootGetStatus() {
+  DEBUG_PRINTLN("Receive: GET /status");
+  if (g_pHttpd != NULL) {
+    g_powerStatus.update();
+    g_humanDetector.update();
+    String html = HTML_HEAD;
+    html += "<h1>AirCon Power status</h1>";
+    html += "Now : " + TimeUtil::getDateTimeFromTime(now()) + "<br>";
+    html += "AirCon power : " + String(g_powerStatus.getStatus() ? "On" : "Off") +"<br>";
+    html += "Human detection status : " + String(g_humanDetector.getStatus() ? "On" : "Off") +"<br>";
     html += HTML_TAIL;
     g_pHttpd->send(200, "text/html", html);
   }
