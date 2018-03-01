@@ -17,7 +17,7 @@
 #include "base.h"
 #include "AirConPowerControl.h"
 
-#define TIMEOUT_SET_POWER 5000
+#define TIMEOUT_SET_POWER 10000
 
 AirConPowerControl::AirConPowerControl(IRemoteController* pController, GpioDetector* pPowerStatus, int checkStatusPeriod, int checkStatusPollingPeriod):mpController(pController),mpPowerStatus(pPowerStatus),mCheckStatusPeriod(checkStatusPeriod),mCheckStatusPollingPeriod(checkStatusPollingPeriod)
 {

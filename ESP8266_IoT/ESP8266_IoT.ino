@@ -52,7 +52,7 @@ static UPnPDevice* g_pSwitch1=NULL;
 #include "AirConPowerControlPoller.h"
 #include "AirConConfig.h"
 
-static AirConPowerControl* g_pAirPowerControl=NULL;
+AirConPowerControl* g_pAirPowerControl=NULL;
 
 
 // --- mode changer
