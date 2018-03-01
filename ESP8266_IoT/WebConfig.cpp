@@ -39,8 +39,8 @@ char* HTML_TAIL = "</body></html>";
 
 void httpd_handleRootGet(void);
 void httpd_handleRootPost(void);
-void httpd_handleRootStatusGet(void);
-void httpd_handleRootStatusPost(void);
+void httpd_handleStatusGet(void);
+void httpd_handleStatusPost(void);
 
 void setup_httpd() {
   if( g_pHttpd == NULL ){
@@ -48,8 +48,8 @@ void setup_httpd() {
   }
   g_pHttpd->on("/", HTTP_GET, httpd_handleRootGet);
   g_pHttpd->on("/", HTTP_POST, httpd_handleRootPost);
-  g_pHttpd->on("/status", HTTP_GET, httpd_handleRootStatusGet);
-  g_pHttpd->on("/status", HTTP_POST, httpd_handleRootStatusPost);
+  g_pHttpd->on("/status", HTTP_GET, httpd_handleStatusGet);
+  g_pHttpd->on("/status", HTTP_POST, httpd_handleStatusPost);
   g_pHttpd->begin();
   DEBUG_PRINTLN("HTTP server started.");
 }
@@ -107,8 +107,7 @@ void httpd_handleRootPost() {
   }
 }
 
-void httpd_handleRootStatusGet() {
-  DEBUG_PRINTLN("Receive: GET /status");
+void httpd_responseStatus() {
   if (g_pHttpd != NULL) {
     g_powerStatus.update();
     g_humanDetector.update();
@@ -126,13 +125,34 @@ void httpd_handleRootStatusGet() {
   }
 }
 
-void httpd_handleRootStatusPost() {
-  DEBUG_PRINTLN("Receive: POST /status");
-  if( g_pHttpd != NULL && g_pAirPowerControl){
+bool httpd_handlePowerControl() {
+  bool result = false;
+  if( g_pHttpd ){
     String power = g_pHttpd->arg("power");
-    g_pAirPowerControl->setPower( power == "On" );
-    httpd_handleRootStatusGet();
+    result = (power!="");
+    if( result ){
+      power.toLowerCase();
+      if( g_pAirPowerControl ){
+        g_pAirPowerControl->setPower( power == "on" );
+      }
+    }
   }
+  return result;
+}
+
+void httpd_handleStatusGet() {
+  DEBUG_PRINTLN("Receive: GET /status");
+  if( httpd_handlePowerControl() ){
+    g_pHttpd->send(200, "text/plain", "");
+  } else {
+    httpd_responseStatus();
+  }
+}
+
+void httpd_handleStatusPost() {
+  DEBUG_PRINTLN("Receive: POST /status");
+  httpd_handlePowerControl();
+  httpd_responseStatus();
 }
 
 void handleWebServer(){
